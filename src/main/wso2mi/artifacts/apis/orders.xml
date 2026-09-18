@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<api context="/orders" name="orders" xmlns="http://ws.apache.org/ns/synapse">
+    <resource methods="POST" uri-template="/">
+        <inSequence>
+            <property name="orderId" scope="default" type="STRING" expression="json-eval($.orderId)"/>
+            <property name="paymentMethod" scope="default" type="STRING" expression="json-eval($.paymentMethod)"/>
+            <property name="amount" scope="default" type="STRING" expression="json-eval($.amount)"/>
+            <log category="INFO" level="custom">
+                <property name="DEBUG_ORDER_ID" expression="get-property('orderId')"/>
+                <property name="DEBUG_PAYMENT" expression="get-property('paymentMethod')"/>
+                <property name="DEBUG_AMOUNT" expression="get-property('amount')"/>
+            </log>
+            <filter xpath="boolean(get-property('orderId') != '')">
+                <then>
+                    <switch source="get-property('paymentMethod')">
+                        <case regex="CARD">
+                            <payloadFactory media-type="json" template-type="default">
+                                <format>{
+                                    "orderId": "ORD-1001",
+                                    "processor": "CARD",
+                                    "message": "Sent to card processor"
+                                    }</format>
+                            </payloadFactory>
+                        </case>
+                        <case regex="BANK">
+                            <payloadFactory media-type="json" template-type="default">
+                                <format>{
+                                    "orderId": "ORD-1001",
+                                    "processor": "BANK",
+                                    "message": "Sent to bank processor"
+                                    }</format>
+                            </payloadFactory>
+                        </case>
+                        <case regex="TELEBIRR">
+                            <payloadFactory media-type="json" template-type="default">
+                                <format>{
+                                    "orderId": "ORD-1001",
+                                    "processor": "TELEBIRR",
+                                    "message": "Sent to Telebirr processor"
+                                    }</format>
+                            </payloadFactory>
+                        </case>
+                        <default>
+                            <payloadFactory media-type="json" template-type="default">
+                                <format>{"success": false,
+                                    "message": "Unsupported payment method"}</format>
+                            </payloadFactory>
+                            <property name="HTTP_SC" scope="axis2" type="STRING" value="400"/>
+                        </default>
+                    </switch>
+                </then>
+                <else>
+                    <payloadFactory media-type="json" template-type="default">
+                        <format>{
+                            "success": false,
+                            "message": "Fields are required"
+                            }
+                            }</format>
+                    </payloadFactory>
+                    <property name="HTTP_SC" scope="axis2" type="STRING" value="400"/>
+                </else>
+            </filter>
+            <respond/>
+        </inSequence>
+        <faultSequence>
+        </faultSequence>
+    </resource>
+</api>

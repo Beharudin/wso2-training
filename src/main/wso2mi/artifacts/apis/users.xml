@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<api context="/users" name="users" xmlns="http://ws.apache.org/ns/synapse">
+    <resource methods="POST" uri-template="/">
+        <inSequence>
+            <property name="email" scope="default" type="STRING" expression="json-eval($.email)"/>
+            <filter regex='^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$' source="get-property('email')">
+                <then>
+                    <payloadFactory media-type="json" template-type="default">
+                        <format> {"success": true,
+                            "message": "User is valid",
+                            "user": {
+                            "name": "${payload.name}",
+                            "email": "${payload.email}"
+                            }
+                            }</format>
+                    </payloadFactory>
+                </then>
+                <else>
+                    <payloadFactory media-type="json" template-type="default">
+                        <format>{
+                            "success": false,
+                            "message": "Email is required"
+                            }</format>
+                    </payloadFactory>
+                    <property name="HTTP_SC" scope="axis2" type="STRING" value="400"/>
+                </else>
+            </filter>
+            <respond/>
+        </inSequence>
+        <faultSequence>
+        </faultSequence>
+    </resource>
+</api>

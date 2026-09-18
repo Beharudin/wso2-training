@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<api context="/customer-info" name="customer-info" xmlns="http://ws.apache.org/ns/synapse">
+    <resource methods="POST" uri-template="/">
+        <inSequence>
+            <property name="customerId" scope="default" type="STRING" value="json-eval($.customerId)"/>
+            <http.get configKey="customers-call">
+                <relativePath>1001 </relativePath>
+                <headers>[]</headers>
+                <forceScAccepted>false</forceScAccepted>
+                <disableChunking>false</disableChunking>
+                <forceHttp10>false</forceHttp10>
+                <noKeepAlive>false</noKeepAlive>
+                <responseVariable>customerResponse</responseVariable>
+                <overwriteBody>true</overwriteBody>
+            </http.get>
+            <property name="customerResponse" scope="default" type="JSON" expression="json-eval($)"/>
+            <http.get configKey="accounts-call">
+                <relativePath>1001</relativePath>
+                <headers>[]</headers>
+                <forceScAccepted>false</forceScAccepted>
+                <disableChunking>false</disableChunking>
+                <forceHttp10>false</forceHttp10>
+                <noKeepAlive>false</noKeepAlive>
+                <responseVariable>accountResponse</responseVariable>
+                <overwriteBody>true</overwriteBody>
+            </http.get>
+            <property name="accountResponse" scope="default" type="JSON" expression="json-eval($)"/>
+            <payloadFactory media-type="json" template-type="default">
+                <format>{
+                    "customer": ${props.synapse.customerResponse},
+                    "account": ${props.synapse.accountResponse}}</format>
+            </payloadFactory>
+            <respond/>
+        </inSequence>
+        <faultSequence>
+        </faultSequence>
+    </resource>
+</api>

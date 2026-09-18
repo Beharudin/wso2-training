@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<api context="/calc" name="calc" xmlns="http://ws.apache.org/ns/synapse">
+    <resource methods="POST" uri-template="/add">
+        <inSequence>
+            <property name="intA" scope="default" type="STRING" expression="json-eval($.intA)"/>
+            <property name="intB" scope="default" type="STRING" expression="json-eval($.intB)"/>
+            <payloadFactory media-type="xml" template-type="default">
+                <format>
+                    <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/">
+                        <soapenv:Header/>
+                        <soapenv:Body>
+                            <tem:Add>
+                                <tem:intA>$1</tem:intA>
+                                <tem:intB>$2</tem:intB>
+                            </tem:Add>
+                        </soapenv:Body>
+                    </soapenv:Envelope>
+                </format>
+                <args>
+                    <arg evaluator="xml" expression="get-property('intA')"/>
+                    <arg evaluator="xml" expression="get-property('intB')"/>
+                </args>
+            </payloadFactory>
+            <call>
+                <endpoint key="calc-Ep"/>
+            </call>
+            <property name="NO_ENTITY_BODY" scope="axis2" action="remove"/>
+            <payloadFactory media-type="json" template-type="default">
+                <format>{
+                    "result": "$1"
+                    }</format>
+                <args>
+                    <arg xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns="http://tempuri.org/" evaluator="xml" expression="//soap:Body/ns:AddResponse/ns:AddResult/text()"/>
+                </args>
+            </payloadFactory>
+            <respond/>
+        </inSequence>
+        <faultSequence>
+        </faultSequence>
+    </resource>
+    <resource methods="POST" uri-template="/sub">
+        <inSequence>
+            <property name="intA" scope="default" type="STRING" expression="json-eval($.intA)"/>
+            <property name="intB" scope="default" type="STRING" expression="json-eval($.intB)"/>
+            <payloadFactory media-type="xml" template-type="default">
+                <format>
+                    <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/">
+                        <soapenv:Header/>
+                        <soapenv:Body>
+                            <tem:Subtract>
+                                <tem:intA>$1</tem:intA>
+                                <tem:intB>$2</tem:intB>
+                            </tem:Subtract>
+                        </soapenv:Body>
+                    </soapenv:Envelope>
+                </format>
+                <args>
+                    <arg evaluator="xml" expression="get-property('intA')"/>
+                    <arg evaluator="xml" expression="get-property('intB')"/>
+                </args>
+            </payloadFactory>
+            <call>
+                <endpoint key="calc-Ep"/>
+            </call>
+            <property name="NO_ENTITY_BODY" scope="axis2" action="remove"/>
+            <payloadFactory media-type="json" template-type="default">
+                <format>{result: $1
+                    }</format>
+                <args>
+                    <arg xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns="http://tempuri.org/" evaluator="xml" expression="//soap:Body/ns:SubtractResponse/ns:SubtractResult/text()"/>
+                </args>
+            </payloadFactory>
+            <respond/>
+        </inSequence>
+        <faultSequence>
+        </faultSequence>
+    </resource>
+    <resource methods="POST" uri-template="/mul">
+        <inSequence>
+        <property name="intA" scope="default" type="STRING" expression="json-eval($.intA)"/>
+        <property name="intB" scope="default" type="STRING" expression="json-eval($.intB)"/>
+        <payloadFactory media-type="xml" template-type="default">
+            <format>
+                <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/">
+                    <soapenv:Header/>
+                    <soapenv:Body>
+                        <tem:Multiply>
+                            <tem:intA>$1</tem:intA>
+                            <tem:intB>$2</tem:intB>
+                        </tem:Multiply>
+                    </soapenv:Body>
+                </soapenv:Envelope>
+            </format>
+            <args>
+                <arg evaluator="xml" expression="get-property('intA')"/>
+                <arg evaluator="xml" expression="get-property('intB')"/>
+            </args>
+        </payloadFactory>
+        <call>
+            <endpoint key="calc-Ep"/>
+        </call>
+        <property name="NO_ENTITY_BODY" scope="axis2" action="remove"/>
+        <payloadFactory media-type="json" template-type="default">
+            <format>{result: $1
+                }</format>
+            <args>
+                <arg xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns="http://tempuri.org/" evaluator="xml" expression="//soap:Body/ns:MultiplyResponse/ns:MultiplyResult/text()"/>
+            </args>
+        </payloadFactory>
+        <respond/>
+        
+        </inSequence>
+        <faultSequence>
+        </faultSequence>
+    </resource>
+    <resource methods="POST" uri-template="/div">
+        <inSequence>
+        <property name="intA" scope="default" type="STRING" expression="json-eval($.intA)"/>
+        <property name="intB" scope="default" type="STRING" expression="json-eval($.intB)"/>
+        <payloadFactory media-type="xml" template-type="default">
+            <format>
+                <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/">
+                    <soapenv:Header/>
+                    <soapenv:Body>
+                        <tem:Divide>
+                            <tem:intA>$1</tem:intA>
+                            <tem:intB>$2</tem:intB>
+                        </tem:Divide>
+                    </soapenv:Body>
+                </soapenv:Envelope>
+            </format>
+            <args>
+                <arg evaluator="xml" expression="get-property('intA')"/>
+                <arg evaluator="xml" expression="get-property('intB')"/>
+            </args>
+        </payloadFactory>
+        <call>
+            <endpoint key="calc-Ep"/>
+        </call>
+        <property name="NO_ENTITY_BODY" scope="axis2" action="remove"/>
+        <payloadFactory media-type="json" template-type="default">
+            <format>{result: $1
+                }</format>
+            <args>
+                <arg xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns="http://tempuri.org/" evaluator="xml" expression="//soap:Body/ns:DivideResponse/ns:DivideResult/text()"/>
+            </args>
+        </payloadFactory>
+        <respond/>
+        </inSequence>
+        <faultSequence>
+        </faultSequence>
+    </resource>
+</api>

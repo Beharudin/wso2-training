@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<api context="/dashboard" name="dashboard" xmlns="http://ws.apache.org/ns/synapse">
+    <resource methods="GET" uri-template="/">
+        <inSequence>
+        </inSequence>
+        <faultSequence>
+        </faultSequence>
+    </resource>
+    <resource methods="GET" uri-template="/1001">
+        <inSequence>
+            <scatter-gather parallel-execution="true" target="Body" result-content-type="JSON">
+                <aggregation expression="${payload}"/>
+                <sequence>
+                    <http.get configKey="loans-call">
+                        <relativePath>1001</relativePath>
+                        <headers>[]</headers>
+                        <forceScAccepted>false</forceScAccepted>
+                        <disableChunking>false</disableChunking>
+                        <forceHttp10>false</forceHttp10>
+                        <noKeepAlive>false</noKeepAlive>
+                        <responseVariable>loan</responseVariable>
+                        <overwriteBody>false</overwriteBody>
+                    </http.get>
+                </sequence>
+                <sequence>
+                    <http.get configKey="accounts-call">
+                        <relativePath>1001</relativePath>
+                        <headers>[]</headers>
+                        <forceScAccepted>false</forceScAccepted>
+                        <disableChunking>false</disableChunking>
+                        <forceHttp10>false</forceHttp10>
+                        <noKeepAlive>false</noKeepAlive>
+                        <responseVariable>account</responseVariable>
+                        <overwriteBody>false</overwriteBody>
+                    </http.get>
+                </sequence>
+                <sequence>
+                    <http.get configKey="customers-call">
+                        <relativePath>1001</relativePath>
+                        <headers>[]</headers>
+                        <forceScAccepted>false</forceScAccepted>
+                        <disableChunking>false</disableChunking>
+                        <forceHttp10>false</forceHttp10>
+                        <noKeepAlive>false</noKeepAlive>
+                        <responseVariable>customer</responseVariable>
+                        <overwriteBody>false</overwriteBody>
+                    </http.get>
+                </sequence>
+            </scatter-gather>
+            <log category="INFO" logMessageID="false" logFullPayload="true">
+                <message></message>
+            </log>
+            <payloadFactory media-type="json" template-type="default">
+                <format>{ "customer": ${payload[1]}, "account": ${payload[0]}, "loan": ${payload[2]} }     <!-- 
+                    [0] = account
+                    [1] = customer
+                    [2] = loan 
+                -->
+                </format>
+            </payloadFactory>
+            <respond/>
+        </inSequence>
+        <faultSequence>
+        </faultSequence>
+    </resource>
+</api>

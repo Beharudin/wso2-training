@@ -1,0 +1,10 @@
+---
+key: "dashboard-1.0.0"
+name : "dashboard"
+displayName : "dashboard"
+description: "dashboard"
+version: "1.0.0"
+serviceUrl: "https://{MI_HOST}:{MI_PORT}/dashboard"
+definitionType: "OAS3"
+securityType: "BASIC"
+mutualSSLEnabled: false

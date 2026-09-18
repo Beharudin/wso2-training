@@ -1,0 +1,14 @@
+openapi: 3.0.1
+info:
+  title: mock-loans
+  description: API Definition of mock-loans
+  version: 1.0.0
+servers:
+  - url: http://localhost:8290/mock/loans
+  - url: https://localhost:8253/mock/loans
+paths:
+  /1001:
+    get:
+      responses:
+        default:
+          description: Default response

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<api context="/names" name="names" xmlns="http://ws.apache.org/ns/synapse">
+    <resource methods="POST" uri-template="/">
+        <inSequence>
+            <variable name="first_name" type="STRING" expression="${payload.first_name}"/>
+            <variable name="last_name" type="STRING" expression="${payload.last_name}"/>
+            <log category="INFO" logMessageID="true" logFullPayload="true">
+                <message>first_name = ${vars.first_name}last_name = ${vars.last_name}</message>
+            </log>
+            <payloadFactory media-type="json" template-type="default">
+                <format>{
+                    "first_name": "${vars.first_name}","last_name": "${vars.last_name}"
+                    }</format>
+            </payloadFactory>
+            <respond/>
+        </inSequence>
+        <faultSequence>
+        </faultSequence>
+    </resource>
+</api>

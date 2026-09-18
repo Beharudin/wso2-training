@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<api context="/mock/customers" name="mock-customers" xmlns="http://ws.apache.org/ns/synapse">
+    <resource methods="GET" uri-template="/">
+        <inSequence>
+        </inSequence>
+        <faultSequence>
+        </faultSequence>
+    </resource>
+    <resource methods="GET" uri-template="/1001">
+        <inSequence>
+            <payloadFactory media-type="json" template-type="default">
+                <format>{
+                    "id": 1001,
+                    "name": "Bahar",
+                    "phone": "0911111111"
+                    }</format>
+            </payloadFactory>
+            <respond/>
+        </inSequence>
+        <faultSequence>
+        </faultSequence>
+    </resource>
+</api>

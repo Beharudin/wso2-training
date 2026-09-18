@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<api context="/mock/loans" name="mock-loans" xmlns="http://ws.apache.org/ns/synapse">
+    <resource methods="GET" uri-template="/1001">
+        <inSequence>
+            <payloadFactory media-type="json" template-type="default">
+                <format>{
+                    "loanId": "LN-9923",
+                    "outstandingAmount": 4500,
+                    "status": "APPROVED"
+                    }</format>
+            </payloadFactory>
+            <respond/>
+        </inSequence>
+        <faultSequence>
+        </faultSequence>
+    </resource>
+</api>

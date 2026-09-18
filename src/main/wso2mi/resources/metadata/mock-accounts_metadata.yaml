@@ -1,0 +1,10 @@
+---
+key: "mock-accounts-1.0.0"
+name : "mock-accounts"
+displayName : "mock-accounts"
+description: "mock-accounts"
+version: "1.0.0"
+serviceUrl: "https://{MI_HOST}:{MI_PORT}/mock/accounts"
+definitionType: "OAS3"
+securityType: "BASIC"
+mutualSSLEnabled: false

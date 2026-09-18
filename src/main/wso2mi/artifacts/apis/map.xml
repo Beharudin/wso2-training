@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<api context="/map" name="map" xmlns="http://ws.apache.org/ns/synapse">
+    <resource methods="POST" uri-template="/">
+        <inSequence>
+            <datamapper config="resources:datamapper/CustomerTransform/CustomerTransform.dmc" inputSchema="resources:datamapper/CustomerTransform/CustomerTransform_inputSchema.json" outputSchema="resources:datamapper/CustomerTransform/CustomerTransform_outputSchema.json" outputType="JSON"/>
+            <respond/>
+        </inSequence>
+        <faultSequence>
+        </faultSequence>
+    </resource>
+</api>

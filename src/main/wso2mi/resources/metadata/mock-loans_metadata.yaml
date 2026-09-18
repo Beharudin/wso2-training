@@ -1,0 +1,10 @@
+---
+key: "mock-loans-1.0.0"
+name : "mock-loans"
+displayName : "mock-loans"
+description: "mock-loans"
+version: "1.0.0"
+serviceUrl: "https://{MI_HOST}:{MI_PORT}/mock/loans"
+definitionType: "OAS3"
+securityType: "BASIC"
+mutualSSLEnabled: false

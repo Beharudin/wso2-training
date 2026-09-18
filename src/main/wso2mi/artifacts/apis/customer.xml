@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<api context="/customer" name="customer" xmlns="http://ws.apache.org/ns/synapse">
+    <resource methods="POST" uri-template="/">
+        <inSequence>
+            <property name="correlationId" scope="default" type="STRING" expression="$trp:X-Correlation-ID"/>
+            <payloadFactory media-type="json" template-type="default">
+                <format>{
+                    "correlationId": "$1",
+                    "customer": {
+                    "full_name": "$2 $3",
+                    "phone_number": "$4",
+                    "location": "$5, $6"
+                    }
+                    }
+</format>
+                <args>
+                    <arg evaluator="xml" expression="get-property('correlationId')"/>
+                    <arg evaluator="json" expression="$.firstName"/>
+                    <arg evaluator="json" expression="$.lastName"/>
+                    <arg evaluator="json" expression="$.phone"/>
+                    <arg evaluator="json" expression="$.address.city"/>
+                    <arg evaluator="json" expression="$.address.country"/>
+                </args>
+            </payloadFactory>
+            <respond/>
+        </inSequence>
+        <faultSequence>
+        </faultSequence>
+    </resource>
+</api>
