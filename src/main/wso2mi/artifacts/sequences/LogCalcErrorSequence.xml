@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sequence name="LogCalcErrorSequence" trace="disable" xmlns="http://ws.apache.org/ns/synapse">
+ <dbreport>
+        <connection><pool><dsName>jdbc/CALC_DB</dsName></pool></connection>
+        <statement>
+            <sql><![CDATA[INSERT INTO calc_log
+              (message_id, operation, int_a, int_b, request_body, status, error_message)
+              VALUES (?, ?, ?, ?, ?, 'FAILED', ?)]]></sql>
+            <parameter expression="get-property('messageId')" type="VARCHAR"/>
+            <parameter expression="get-property('operation')" type="VARCHAR"/>
+            <parameter expression="get-property('intA')" type="INTEGER"/>
+            <parameter expression="get-property('intB')" type="INTEGER"/>
+            <parameter expression="get-property('reqBody')" type="VARCHAR"/>
+            <parameter expression="get-property('errorMsg')" type="VARCHAR"/>
+        </statement>
+    </dbreport>
+</sequence>

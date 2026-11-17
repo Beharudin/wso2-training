@@ -1,0 +1,992 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WSO2 MI Database Guide</title>
+<style>
+:root{
+  --bg:#f7f8fa;--panel:#ffffff;--text:#1d2330;--muted:#5d6678;--border:#dde1e8;
+  --accent:#2563eb;--accent-soft:#e8efff;--code-bg:#0f172a;--code-text:#e2e8f0;
+  --ok:#15803d;--ok-soft:#e7f6ec;--warn:#b45309;--warn-soft:#fdf3e2;--bad:#b91c1c;--bad-soft:#fdeaea;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1117;--panel:#161b24;--text:#e6e9ef;--muted:#9aa3b5;--border:#2a3140;
+    --accent:#6ea0ff;--accent-soft:#1c2740;--code-bg:#0a0d13;--code-text:#e2e8f0;
+    --ok:#4ade80;--ok-soft:#14261b;--warn:#fbbf24;--warn-soft:#2a2112;--bad:#f87171;--bad-soft:#2a1515;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1117;--panel:#161b24;--text:#e6e9ef;--muted:#9aa3b5;--border:#2a3140;
+  --accent:#6ea0ff;--accent-soft:#1c2740;--code-bg:#0a0d13;--code-text:#e2e8f0;
+  --ok:#4ade80;--ok-soft:#14261b;--warn:#fbbf24;--warn-soft:#2a2112;--bad:#f87171;--bad-soft:#2a1515;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--accent)}
+.layout{display:grid;grid-template-columns:270px 1fr;max-width:1250px;margin:0 auto}
+nav{position:sticky;top:0;height:100vh;overflow:auto;padding:24px 16px;border-right:1px solid var(--border)}
+nav h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:20px 0 6px}
+nav a{display:flex;gap:8px;align-items:center;padding:5px 8px;border-radius:6px;text-decoration:none;color:var(--text);font-size:14px}
+nav a:hover{background:var(--accent-soft)}
+nav a .dot{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--muted);flex:none}
+nav a.done .dot{background:var(--ok);border-color:var(--ok)}
+.progress{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin:8px 0 4px}
+.progress div{height:100%;background:var(--ok);width:0;transition:width .3s}
+.small{font-size:13px;color:var(--muted)}
+main{padding:32px 32px 120px;min-width:0}
+header h1{margin:0 0 6px;font-size:30px}
+section{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:24px 28px;margin:24px 0;scroll-margin-top:16px}
+section h2{margin-top:0;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.tag{font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+.tag.bank{background:var(--warn-soft);color:var(--warn)}
+h3{margin:22px 0 8px;font-size:17px}
+.goal{border-left:4px solid var(--accent);background:var(--accent-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:12px 0}
+.check{border-left:4px solid var(--ok);background:var(--ok-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:12px 0}
+.warn{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:12px 0}
+.bad{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:12px 0}
+.codewrap{position:relative;margin:10px 0 16px}
+.codewrap .lang{position:absolute;top:6px;left:12px;font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em}
+pre{background:var(--code-bg);color:var(--code-text);padding:28px 14px 14px;border-radius:8px;overflow:auto;font:13.5px/1.5 ui-monospace,Consolas,"Cascadia Code",monospace;margin:0}
+.copy{position:absolute;top:6px;right:8px;font-size:12px;padding:3px 10px;border-radius:6px;border:1px solid #334155;background:#1e293b;color:#e2e8f0;cursor:pointer}
+code{font-family:ui-monospace,Consolas,monospace;font-size:.92em;background:var(--accent-soft);padding:1px 5px;border-radius:4px}
+pre code{background:none;padding:0}
+table{border-collapse:collapse;width:100%;margin:10px 0;font-size:14.5px;display:block;overflow-x:auto}
+th,td{border:1px solid var(--border);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:var(--accent-soft)}
+.done-row{display:flex;align-items:center;gap:10px;margin-top:20px;padding-top:14px;border-top:1px dashed var(--border)}
+.done-row label{font-weight:600;cursor:pointer}
+.done-row input{width:18px;height:18px}
+.themebtn{float:right;font-size:13px;padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:var(--panel);color:var(--text);cursor:pointer}
+ol li,ul li{margin:4px 0}
+@media (max-width:860px){
+  .layout{display:block}
+  nav{position:static;height:auto;border-right:none;border-bottom:1px solid var(--border);padding:16px}
+  main{padding:16px 16px 80px}
+  section{padding:18px 16px}
+}
+</style>
+</head>
+<body>
+<div class="layout">
+<nav>
+  <strong>WSO2 MI + PostgreSQL</strong>
+  <div class="progress"><div id="bar"></div></div>
+  <div class="small" id="progressText">0 done</div>
+
+  <h2>Start</h2>
+  <a href="#overview"><span class="dot"></span>Overview &amp; how to use</a>
+  <a href="#mediators"><span class="dot"></span>The 3 database mediators</a>
+
+  <h2>Track A: Calc API</h2>
+  <a href="#l0" data-step="l0"><span class="dot"></span>L0 · PostgreSQL setup</a>
+  <a href="#l1" data-step="l1"><span class="dot"></span>L1 · DB Report insert</a>
+  <a href="#l2" data-step="l2"><span class="dot"></span>L2 · Store request/response</a>
+  <a href="#l3" data-step="l3"><span class="dot"></span>L3 · Datasource</a>
+  <a href="#l4" data-step="l4"><span class="dot"></span>L4 · Reusable sequence</a>
+  <a href="#l5" data-step="l5"><span class="dot"></span>L5 · Logging failures</a>
+  <a href="#l6" data-step="l6"><span class="dot"></span>L6 · DB Lookup</a>
+  <a href="#l7" data-step="l7"><span class="dot"></span>L7 · Data Service + Call Dataservice</a>
+
+  <h2>Track B: Banking</h2>
+  <a href="#b1" data-step="b1"><span class="dot"></span>B1 · Bank schema</a>
+  <a href="#b2" data-step="b2"><span class="dot"></span>B2 · Balance inquiry</a>
+  <a href="#b3" data-step="b3"><span class="dot"></span>B3 · Atomic fund transfer</a>
+  <a href="#b4" data-step="b4"><span class="dot"></span>B4 · Idempotency &amp; audit</a>
+  <a href="#b5" data-step="b5"><span class="dot"></span>B5 · Account statement</a>
+
+  <h2>Reference</h2>
+  <a href="#errors"><span class="dot"></span>Troubleshooting</a>
+  <a href="#prod"><span class="dot"></span>Production checklist</a>
+</nav>
+
+<main>
+<header>
+  <button class="themebtn" id="themeBtn" type="button">Toggle theme</button>
+  <h1>WSO2 MI Database Guide</h1>
+  <p class="small">PostgreSQL · DB Report · DB Lookup · Data Services · Call Dataservice · Banking transactions</p>
+</header>
+
+<!-- ============ OVERVIEW ============ -->
+<section id="overview">
+  <h2>Overview &amp; how to use</h2>
+  <p>You'll work through two tracks. <b>Track A</b> adds database storage to your existing <code>calc</code> API, starting with one simple insert and ending with a Data Service. <b>Track B</b> uses the same skills on a small banking model: accounts, balances, atomic transfers, idempotency and statements.</p>
+  <ul>
+    <li>Do the levels in order. Each one ends with a <b>✅ checkpoint</b>. Don't move on until it passes.</li>
+    <li>Tick <b>"I finished this level"</b> at the bottom of each level. Your progress is saved in this browser.</li>
+    <li><b>Debug habit:</b> add <code>&lt;log level="full"/&gt;</code> after any mediator whose result you're unsure about, and read the MI console.</li>
+    <li>Snippets show the important part, not always the full file. Paste them into the right place in your XML, or build the same thing in the VS Code designer and compare.</li>
+  </ul>
+  <div class="warn"><b>Suggested one-day plan:</b> morning L0–L4 · after lunch L5–L7 · late afternoon B1–B3 · stretch B4–B5.</div>
+</section>
+
+<!-- ============ MEDIATORS ============ -->
+<section id="mediators">
+  <h2>The 3 database mediators</h2>
+  <table>
+    <tr><th>Palette item</th><th>XML tag</th><th>What it does</th><th>When to use</th></tr>
+    <tr><td><b>DB Report</b></td><td><code>&lt;dbreport&gt;</code></td><td>Runs INSERT / UPDATE / DELETE. Doesn't change the message.</td><td>Audit logs and simple writes</td></tr>
+    <tr><td><b>DB Lookup</b></td><td><code>&lt;dblookup&gt;</code></td><td>Runs a SELECT and puts the columns of the <b>first row only</b> into properties.</td><td>Reading one value: a balance, a config value, a cache hit</td></tr>
+    <tr><td><b>Call Dataservice</b></td><td><code>&lt;dataServiceCall&gt;</code></td><td>Calls a Data Service deployed in the same MI, in-process, without HTTP. The result can go to the body or a property.</td><td>Production style: multi-row results, transactions, stored procedures, reusable SQL</td></tr>
+  </table>
+  <h3>Rule of thumb</h3>
+  <ul>
+    <li>One simple write or one single-row read: <b>DB Report / DB Lookup</b>.</li>
+    <li>Multiple rows, business logic, money movement, or SQL shared by many APIs: <b>Data Service</b> (called with Call Dataservice or over HTTP).</li>
+  </ul>
+  <h3>Parameter types you'll use</h3>
+  <p><code>VARCHAR</code>, <code>INTEGER</code>, <code>BIGINT</code>, <code>NUMERIC</code>/<code>DECIMAL</code> (money), <code>TIMESTAMP</code>. An empty string sent to an <code>INTEGER</code> parameter fails, so validate inputs first.</p>
+</section>
+
+<!-- ============ L0 ============ -->
+<section id="l0">
+  <h2>L0 · PostgreSQL setup <span class="tag">Calc</span></h2>
+  <div class="goal"><b>Goal:</b> a running PostgreSQL, a <code>calc_log</code> table, and the JDBC driver available to MI.</div>
+  <h3>1. Start PostgreSQL in Docker</h3>
+  <script type="text/plain" class="code" data-lang="bash">docker run -d --name calc-pg -e POSTGRES_USER=calc -e POSTGRES_PASSWORD=calc -e POSTGRES_DB=calcdb -p 5432:5432 postgres:16
+
+# open psql later with:
+docker exec -it calc-pg psql -U calc -d calcdb</script>
+  <h3>2. Create the log table</h3>
+  <script type="text/plain" class="code" data-lang="sql">CREATE TABLE calc_log (
+  id            SERIAL PRIMARY KEY,
+  message_id    VARCHAR(100),
+  operation     VARCHAR(10) NOT NULL,
+  int_a         INTEGER,
+  int_b         INTEGER,
+  result        INTEGER,
+  request_body  TEXT,
+  response_body TEXT,
+  status        VARCHAR(20),
+  error_message TEXT,
+  created_at    TIMESTAMP DEFAULT now()
+);</script>
+  <h3>3. JDBC driver (needed by MI, not by psql)</h3>
+  <ol>
+    <li>Download <code>postgresql-42.x.x.jar</code> from <a href="https://jdbc.postgresql.org/download/" target="_blank" rel="noopener">jdbc.postgresql.org</a>.</li>
+    <li>Put it in <code>deployment/libs/</code> in your project. If MI still can't find it, copy it to <code>&lt;MI_HOME&gt;/lib/</code>.</li>
+    <li>Restart MI.</li>
+  </ol>
+  <div class="warn"><code>psql</code> working doesn't prove MI can connect. MI is a Java program and uses JDBC, so it needs the jar.</div>
+  <div class="check">✅ <b>Checkpoint:</b> <code>SELECT * FROM calc_log;</code> returns 0 rows. Tip: run <code>\pset pager off</code> to stop the <code>(END)</code> screen.</div>
+  <div class="done-row"><input type="checkbox" id="cb-l0" data-step="l0"><label for="cb-l0">I finished this level</label></div>
+</section>
+
+<!-- ============ L1 ============ -->
+<section id="l1">
+  <h2>L1 · DB Report: first insert <span class="tag">Calc</span></h2>
+  <div class="goal"><b>Goal:</b> every <code>POST /calc/add</code> writes one row.</div>
+  <ol>
+    <li>Open <code>calc.xml</code>. In the <code>/add</code> resource, find the JSON <code>payloadFactory</code> that builds <code>{"result": ...}</code>.</li>
+    <li>Right after it, before <code>&lt;respond/&gt;</code>, add a <b>DB Report</b> mediator.</li>
+    <li>Use an inline connection for now. You'll replace it in L3.</li>
+  </ol>
+  <script type="text/plain" class="code" data-lang="xml"><dbreport>
+    <connection>
+        <pool>
+            <driver>org.postgresql.Driver</driver>
+            <url>jdbc:postgresql://localhost:5432/calcdb</url>
+            <user>calc</user>
+            <password>calc</password>
+        </pool>
+    </connection>
+    <statement>
+        <sql><![CDATA[INSERT INTO calc_log (operation, int_a, int_b, result, status) VALUES (?, ?, ?, ?, ?)]]></sql>
+        <parameter value="add" type="VARCHAR"/>
+        <parameter expression="get-property('intA')" type="INTEGER"/>
+        <parameter expression="get-property('intB')" type="INTEGER"/>
+        <parameter expression="json-eval($.result)" type="INTEGER"/>
+        <parameter value="SUCCESS" type="VARCHAR"/>
+    </statement>
+</dbreport></script>
+  <p>Each <code>&lt;parameter&gt;</code> fills the next <code>?</code> in order. Use <code>value</code> for a literal and <code>expression</code> for something computed.</p>
+  <h3>Test</h3>
+  <script type="text/plain" class="code" data-lang="bash">curl -X POST http://localhost:8290/calc/add -H "Content-Type: application/json" -d "{\"intA\":5,\"intB\":7}"</script>
+  <h3>Experiments</h3>
+  <ul>
+    <li>Move the DB Report to just <b>before</b> the <code>&lt;call&gt;</code>. Does <code>json-eval($.result)</code> still work? Why not?</li>
+    <li>Send <code>"intA":"abc"</code>. Read the error in the MI console.</li>
+  </ul>
+  <div class="check">✅ <b>Checkpoint:</b> one new row per call, with the correct <code>result</code>.</div>
+  <div class="done-row"><input type="checkbox" id="cb-l1" data-step="l1"><label for="cb-l1">I finished this level</label></div>
+</section>
+
+<!-- ============ L2 ============ -->
+<section id="l2">
+  <h2>L2 · Store full request &amp; response <span class="tag">Calc</span></h2>
+  <div class="goal"><b>Goal:</b> save the original request body, the final response body, and MI's message ID.</div>
+  <ol>
+    <li>As the <b>first</b> mediator in the <code>inSequence</code>, before anything changes the payload, add:</li>
+  </ol>
+  <script type="text/plain" class="code" data-lang="xml"><property name="reqBody"   expression="json-eval($)" scope="default" type="STRING"/>
+<property name="messageId" expression="get-property('MessageID')" scope="default" type="STRING"/></script>
+  <ol start="2">
+    <li>After the JSON <code>payloadFactory</code>, add:</li>
+  </ol>
+  <script type="text/plain" class="code" data-lang="xml"><property name="respBody" expression="json-eval($)" scope="default" type="STRING"/></script>
+  <ol start="3">
+    <li>Extend the INSERT:</li>
+  </ol>
+  <script type="text/plain" class="code" data-lang="xml"><sql><![CDATA[INSERT INTO calc_log
+  (message_id, operation, int_a, int_b, result, request_body, response_body, status)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?)]]></sql>
+<parameter expression="get-property('messageId')" type="VARCHAR"/>
+<parameter value="add" type="VARCHAR"/>
+<parameter expression="get-property('intA')" type="INTEGER"/>
+<parameter expression="get-property('intB')" type="INTEGER"/>
+<parameter expression="json-eval($.result)" type="INTEGER"/>
+<parameter expression="get-property('reqBody')" type="VARCHAR"/>
+<parameter expression="get-property('respBody')" type="VARCHAR"/>
+<parameter value="SUCCESS" type="VARCHAR"/></script>
+  <div class="warn"><b>Think:</b> why must <code>reqBody</code> be captured at the very start? Try reading <code>json-eval($)</code> at the end instead and compare.</div>
+  <div class="check">✅ <b>Checkpoint:</b> <code>request_body</code>, <code>response_body</code> and <code>message_id</code> are filled.</div>
+  <div class="done-row"><input type="checkbox" id="cb-l2" data-step="l2"><label for="cb-l2">I finished this level</label></div>
+</section>
+
+<!-- ============ L3 ============ -->
+<section id="l3">
+  <h2>L3 · Datasource: no credentials in the flow <span class="tag">Calc</span></h2>
+  <div class="goal"><b>Goal:</b> define the connection once, as a pooled datasource, and reference it by name.</div>
+  <h3>1. Add the datasource to <code>deployment/deployment.toml</code></h3>
+  <script type="text/plain" class="code" data-lang="toml">[[datasource]]
+id = "CALC_DB"
+url = "jdbc:postgresql://localhost:5432/calcdb"
+username = "calc"
+password = "calc"
+driver = "org.postgresql.Driver"
+pool_options.maxActive = 20
+pool_options.maxWait = 10000
+pool_options.validationQuery = "SELECT 1"
+pool_options.testOnBorrow = true</script>
+  <h3>2. Replace the inline pool in the mediator</h3>
+  <script type="text/plain" class="code" data-lang="xml"><connection>
+    <pool>
+        <dsName>CALC_DB</dsName>
+    </pool>
+</connection></script>
+  <p>Restart MI, because <code>deployment.toml</code> changes need a restart, and test again.</p>
+  <h3>Learn</h3>
+  <ul>
+    <li><b>Connection pool:</b> connections are opened once and reused. <code>maxActive</code> limits how many can be open at the same time. Under load, too few connections makes requests wait; too many overloads the database.</li>
+    <li><b>validationQuery / testOnBorrow:</b> MI checks that a connection is still alive before using it. This matters after a network or database restart.</li>
+    <li>Look up <b>WSO2 Secure Vault</b>. In production, the password is encrypted, not stored as plain text in the toml.</li>
+  </ul>
+  <div class="check">✅ <b>Checkpoint:</b> inserts still work with no URL or password inside <code>calc.xml</code>.</div>
+  <div class="done-row"><input type="checkbox" id="cb-l3" data-step="l3"><label for="cb-l3">I finished this level</label></div>
+</section>
+
+<!-- ============ L4 ============ -->
+<section id="l4">
+  <h2>L4 · Reusable logging sequence <span class="tag">Calc</span></h2>
+  <div class="goal"><b>Goal:</b> one DB Report shared by <code>/add</code>, <code>/sub</code>, <code>/mul</code> and <code>/div</code>.</div>
+  <ol>
+    <li>In VS Code, add a new <b>Sequence</b> artifact named <code>LogCalcSequence</code>.</li>
+    <li>Move the DB Report into it and replace the literal <code>add</code> with a property.</li>
+  </ol>
+  <script type="text/plain" class="code" data-lang="xml"><sequence name="LogCalcSequence" xmlns="http://ws.apache.org/ns/synapse">
+    <property name="respBody" expression="json-eval($)" scope="default" type="STRING"/>
+    <dbreport>
+        <connection><pool><dsName>CALC_DB</dsName></pool></connection>
+        <statement>
+            <sql><![CDATA[INSERT INTO calc_log
+              (message_id, operation, int_a, int_b, result, request_body, response_body, status)
+              VALUES (?, ?, ?, ?, ?, ?, ?, 'SUCCESS')]]></sql>
+            <parameter expression="get-property('messageId')" type="VARCHAR"/>
+            <parameter expression="get-property('operation')" type="VARCHAR"/>
+            <parameter expression="get-property('intA')" type="INTEGER"/>
+            <parameter expression="get-property('intB')" type="INTEGER"/>
+            <parameter expression="json-eval($.result)" type="INTEGER"/>
+            <parameter expression="get-property('reqBody')" type="VARCHAR"/>
+            <parameter expression="get-property('respBody')" type="VARCHAR"/>
+        </statement>
+    </dbreport>
+</sequence></script>
+  <ol start="3">
+    <li>In <b>each</b> resource: set the operation at the start, and call the sequence before <code>&lt;respond/&gt;</code>.</li>
+  </ol>
+  <script type="text/plain" class="code" data-lang="xml"><!-- at the start of /sub -->
+<property name="operation" value="sub" scope="default" type="STRING"/>
+
+<!-- before <respond/> -->
+<sequence key="LogCalcSequence"/></script>
+  <div class="warn">Your <code>/sub</code>, <code>/mul</code> and <code>/div</code> use <code>{result: "$1"}</code>, which is not valid JSON, so <code>json-eval($.result)</code> may fail. Fix them to <code>{"result": "$1"}</code> first.</div>
+  <p><b>Bonus:</b> try the same thing with a <b>Sequence Template</b> (<code>&lt;call-template&gt;</code> with <code>&lt;with-param&gt;</code>). It takes parameters explicitly instead of relying on properties.</p>
+  <div class="check">✅ <b>Checkpoint:</b> all 4 operations write rows, each with the correct <code>operation</code> value.</div>
+  <div class="done-row"><input type="checkbox" id="cb-l4" data-step="l4"><label for="cb-l4">I finished this level</label></div>
+</section>
+
+<!-- ============ L5 ============ -->
+<section id="l5">
+  <h2>L5 · Logging failures <span class="tag">Calc</span></h2>
+  <div class="goal"><b>Goal:</b> failed calls are stored with <code>status='FAILED'</code> and an error message, and the client gets a clean error.</div>
+  <h3>Two kinds of failure in MI</h3>
+  <table>
+    <tr><th>Failure</th><th>Example</th><th>Fault sequence runs?</th></tr>
+    <tr><td>Backend unreachable or timed out</td><td>Wrong port, backend down</td><td><b>Yes</b></td></tr>
+    <tr><td>Backend <i>replied</i> with an error</td><td>SOAP fault for divide by zero, HTTP 500</td><td><b>Usually no.</b> <code>&lt;call&gt;</code> treats it as a normal response.</td></tr>
+  </table>
+  <h3>1. Error logging sequence</h3>
+  <script type="text/plain" class="code" data-lang="xml"><sequence name="LogCalcErrorSequence" xmlns="http://ws.apache.org/ns/synapse">
+    <dbreport>
+        <connection><pool><dsName>CALC_DB</dsName></pool></connection>
+        <statement>
+            <sql><![CDATA[INSERT INTO calc_log
+              (message_id, operation, int_a, int_b, request_body, status, error_message)
+              VALUES (?, ?, ?, ?, ?, 'FAILED', ?)]]></sql>
+            <parameter expression="get-property('messageId')" type="VARCHAR"/>
+            <parameter expression="get-property('operation')" type="VARCHAR"/>
+            <parameter expression="get-property('intA')" type="INTEGER"/>
+            <parameter expression="get-property('intB')" type="INTEGER"/>
+            <parameter expression="get-property('reqBody')" type="VARCHAR"/>
+            <parameter expression="get-property('errorMsg')" type="VARCHAR"/>
+        </statement>
+    </dbreport>
+</sequence></script>
+  <h3>2. Fault sequence (connection errors)</h3>
+  <script type="text/plain" class="code" data-lang="xml"><faultSequence>
+    <property name="errorMsg" expression="get-property('ERROR_MESSAGE')" scope="default" type="STRING"/>
+    <sequence key="LogCalcErrorSequence"/>
+    <payloadFactory media-type="json">
+        <format>{"error": "$1"}</format>
+        <args><arg evaluator="xml" expression="get-property('errorMsg')"/></args>
+    </payloadFactory>
+    <property name="HTTP_SC" value="502" scope="axis2"/>
+    <respond/>
+</faultSequence></script>
+  <p><b>Test A:</b> change the <code>calc-Ep</code> port to a wrong one, call <code>/add</code>, and check for a FAILED row.</p>
+  <h3>3. Backend error responses (filter on HTTP status)</h3>
+  <p>Right after <code>&lt;call&gt;</code> in <code>/div</code>:</p>
+  <script type="text/plain" class="code" data-lang="xml"><filter source="get-property('axis2','HTTP_SC')" regex="2\d\d">
+    <then>
+        <!-- existing success path: payloadFactory -> LogCalcSequence -> respond -->
+    </then>
+    <else>
+        <property name="errorMsg" expression="//*[local-name()='faultstring']/text()" scope="default" type="STRING"/>
+        <sequence key="LogCalcErrorSequence"/>
+        <payloadFactory media-type="json">
+            <format>{"error": "$1"}</format>
+            <args><arg evaluator="xml" expression="get-property('errorMsg')"/></args>
+        </payloadFactory>
+        <property name="HTTP_SC" value="400" scope="axis2"/>
+        <respond/>
+    </else>
+</filter></script>
+  <p><b>Test B:</b> <code>/div</code> with <code>"intB":0</code>.</p>
+  <div class="check">✅ <b>Checkpoint:</b> both Test A and Test B create FAILED rows with readable error messages.</div>
+  <div class="done-row"><input type="checkbox" id="cb-l5" data-step="l5"><label for="cb-l5">I finished this level</label></div>
+</section>
+
+<!-- ============ L6 ============ -->
+<section id="l6">
+  <h2>L6 · DB Lookup: reading data <span class="tag">Calc</span></h2>
+  <div class="goal"><b>Goal:</b> (a) a history endpoint, and (b) a simple cache that skips the backend for repeated inputs.</div>
+  <h3>6a. <code>GET /calc/history/{id}</code></h3>
+  <script type="text/plain" class="code" data-lang="xml"><resource methods="GET" uri-template="/history/{id}">
+    <inSequence>
+        <dblookup>
+            <connection><pool><dsName>CALC_DB</dsName></pool></connection>
+            <statement>
+                <sql><![CDATA[SELECT operation, int_a, int_b, result, status FROM calc_log WHERE id = ?]]></sql>
+                <parameter expression="get-property('uri.var.id')" type="INTEGER"/>
+                <result name="h_op"     column="operation"/>
+                <result name="h_a"      column="int_a"/>
+                <result name="h_b"      column="int_b"/>
+                <result name="h_result" column="result"/>
+                <result name="h_status" column="status"/>
+            </statement>
+        </dblookup>
+        <property name="NO_ENTITY_BODY" scope="axis2" action="remove"/>
+        <payloadFactory media-type="json">
+            <format>{"operation":"$1","intA":"$2","intB":"$3","result":"$4","status":"$5"}</format>
+            <args>
+                <arg evaluator="xml" expression="get-property('h_op')"/>
+                <arg evaluator="xml" expression="get-property('h_a')"/>
+                <arg evaluator="xml" expression="get-property('h_b')"/>
+                <arg evaluator="xml" expression="get-property('h_result')"/>
+                <arg evaluator="xml" expression="get-property('h_status')"/>
+            </args>
+        </payloadFactory>
+        <respond/>
+    </inSequence>
+</resource></script>
+  <div class="warn">This is a <b>GET</b>, so the request has no body and <code>NO_ENTITY_BODY</code> is set. Removing it is what lets your JSON response through. Try it without the line and see what you get.</div>
+  <p><b>Exercise:</b> what does the endpoint return for an id that doesn't exist? Add a <code>filter</code> that returns 404 in that case.</p>
+
+  <h3>6b. Cache: skip the backend if the answer is already stored</h3>
+  <p>In <code>/add</code>, after reading <code>intA</code>/<code>intB</code> and <b>before</b> building the SOAP request:</p>
+  <script type="text/plain" class="code" data-lang="xml"><dblookup>
+    <connection><pool><dsName>CALC_DB</dsName></pool></connection>
+    <statement>
+        <sql><![CDATA[SELECT result FROM calc_log
+          WHERE operation = 'add' AND int_a = ? AND int_b = ? AND status = 'SUCCESS'
+          ORDER BY id DESC LIMIT 1]]></sql>
+        <parameter expression="get-property('intA')" type="INTEGER"/>
+        <parameter expression="get-property('intB')" type="INTEGER"/>
+        <result name="cachedResult" column="result"/>
+    </statement>
+</dblookup>
+<filter xpath="string-length(get-property('cachedResult')) &gt; 0">
+    <then>
+        <payloadFactory media-type="json">
+            <format>{"result": "$1", "source": "cache"}</format>
+            <args><arg evaluator="xml" expression="get-property('cachedResult')"/></args>
+        </payloadFactory>
+        <respond/>
+    </then>
+    <else>
+        <!-- existing flow: SOAP payloadFactory -> call -> JSON -> LogCalcSequence -> respond -->
+    </else>
+</filter></script>
+  <div class="check">✅ <b>Checkpoint:</b> the second identical <code>/add</code> call returns <code>"source":"cache"</code> and the backend isn't called. Check this in the wire logs.</div>
+  <div class="done-row"><input type="checkbox" id="cb-l6" data-step="l6"><label for="cb-l6">I finished this level</label></div>
+</section>
+
+<!-- ============ L7 ============ -->
+<section id="l7">
+  <h2>L7 · Data Service + Call Dataservice <span class="tag">Calc</span></h2>
+  <div class="goal"><b>Goal:</b> move SQL out of your API into a Data Service, expose it as REST, and call it from the API with the <b>Call Dataservice</b> mediator.</div>
+  <h3>1. Create the Data Service</h3>
+  <p>In VS Code: <b>Add Artifact → Data Service</b> → name it <code>CalcLogDataService</code>. Its XML should end up like this:</p>
+  <script type="text/plain" class="code" data-lang="xml"><data name="CalcLogDataService" transports="http https">
+    <config id="CalcDS">
+        <property name="driverClassName">org.postgresql.Driver</property>
+        <property name="url">jdbc:postgresql://localhost:5432/calcdb</property>
+        <property name="username">calc</property>
+        <property name="password">calc</property>
+    </config>
+    <!-- production alternative: reuse the L3 datasource
+    <config id="CalcDS">
+        <property name="carbon_datasource_name">CALC_DB</property>
+    </config> -->
+
+    <query id="getLogsQuery" useConfig="CalcDS">
+        <sql>SELECT id, operation, int_a, int_b, result, status FROM calc_log ORDER BY id DESC LIMIT :limit</sql>
+        <param name="limit" sqlType="INTEGER"/>
+        <result outputType="json">
+{"logs":{"log":[{"id":"$id","operation":"$operation","intA":"$int_a","intB":"$int_b","result":"$result","status":"$status"}]}}
+        </result>
+    </query>
+
+    <query id="insertLogQuery" useConfig="CalcDS">
+        <sql>INSERT INTO calc_log (message_id, operation, int_a, int_b, result, status)
+             VALUES (:messageId, :operation, :intA, :intB, :result, 'SUCCESS')</sql>
+        <param name="messageId" sqlType="STRING"/>
+        <param name="operation" sqlType="STRING"/>
+        <param name="intA"      sqlType="INTEGER"/>
+        <param name="intB"      sqlType="INTEGER"/>
+        <param name="result"    sqlType="INTEGER"/>
+    </query>
+
+    <!-- REST access -->
+    <resource method="GET" path="logs">
+        <call-query href="getLogsQuery">
+            <with-param name="limit" query-param="limit"/>
+        </call-query>
+    </resource>
+
+    <!-- operation: used by the Call Dataservice mediator -->
+    <operation name="insertLog">
+        <call-query href="insertLogQuery">
+            <with-param name="messageId" query-param="messageId"/>
+            <with-param name="operation" query-param="operation"/>
+            <with-param name="intA"      query-param="intA"/>
+            <with-param name="intB"      query-param="intB"/>
+            <with-param name="result"    query-param="result"/>
+        </call-query>
+    </operation>
+</data></script>
+  <h3>2. Test it directly</h3>
+  <script type="text/plain" class="code" data-lang="bash">curl "http://localhost:8290/services/CalcLogDataService/logs?limit=5" -H "Accept: application/json"</script>
+  <h3>3. Call it from the API with Call Dataservice</h3>
+  <p>In <code>LogCalcSequence</code>, replace the <code>dbreport</code> with:</p>
+  <script type="text/plain" class="code" data-lang="xml"><dataServiceCall serviceName="CalcLogDataService">
+    <source type="inline"/>
+    <operations type="single">
+        <operation name="insertLog">
+            <param name="messageId" evaluator="xml"  expression="get-property('messageId')"/>
+            <param name="operation" evaluator="xml"  expression="get-property('operation')"/>
+            <param name="intA"      evaluator="xml"  expression="get-property('intA')"/>
+            <param name="intB"      evaluator="xml"  expression="get-property('intB')"/>
+            <param name="result"    evaluator="json" expression="$.result"/>
+        </operation>
+    </operations>
+    <target type="property" name="dsResponse"/>
+</dataServiceCall></script>
+  <div class="warn"><b>Watch the target.</b> <code>type="body"</code> would replace your JSON response with the Data Service's output. Here you want to keep the client response, so store the result in a property. Add <code>&lt;log level="full"/&gt;</code> to see the difference.</div>
+  <h3>Call Dataservice options</h3>
+  <table>
+    <tr><th>Setting</th><th>Values</th><th>Meaning</th></tr>
+    <tr><td>source type</td><td><code>inline</code> / <code>body</code></td><td>inline: params are defined in the mediator. body: the current payload is already a DSS request.</td></tr>
+    <tr><td>operations type</td><td><code>single</code> / <code>batch</code> / <code>request-box</code></td><td>single: one call. batch: the same operation many times, e.g. bulk insert. request-box: several operations in <b>one transaction</b> (needs boxcarring enabled on the data service).</td></tr>
+    <tr><td>target type</td><td><code>body</code> / <code>property</code></td><td>Where the result goes.</td></tr>
+  </table>
+  <h3>Why teams use Data Services</h3>
+  <ul>
+    <li>SQL lives in one place and many APIs reuse it.</li>
+    <li>You can test the data layer on its own (step 2).</li>
+    <li>Multi-row results, transactions, stored procedures, input validation.</li>
+  </ul>
+  <div class="check">✅ <b>Checkpoint:</b> <code>/calc/add</code> still returns <code>{"result": ...}</code>, rows are inserted through the data service, and <code>GET /logs</code> lists them.</div>
+  <div class="done-row"><input type="checkbox" id="cb-l7" data-step="l7"><label for="cb-l7">I finished this level</label></div>
+</section>
+
+<!-- ============ B1 ============ -->
+<section id="b1">
+  <h2>B1 · Bank schema <span class="tag bank">Banking</span></h2>
+  <div class="goal"><b>Goal:</b> a small, realistic core-banking model: accounts, transactions and an audit table.</div>
+  <script type="text/plain" class="code" data-lang="bash">docker exec -it calc-pg psql -U calc -d postgres -c "CREATE DATABASE bankdb;"
+docker exec -it calc-pg psql -U calc -d bankdb</script>
+  <script type="text/plain" class="code" data-lang="sql">CREATE TABLE accounts (
+  id          SERIAL PRIMARY KEY,
+  account_no  VARCHAR(20)   UNIQUE NOT NULL,
+  holder_name VARCHAR(100)  NOT NULL,
+  balance     NUMERIC(18,2) NOT NULL DEFAULT 0 CHECK (balance >= 0),
+  currency    CHAR(3)       NOT NULL DEFAULT 'USD',
+  status      VARCHAR(10)   NOT NULL DEFAULT 'ACTIVE',   -- ACTIVE / FROZEN / CLOSED
+  created_at  TIMESTAMPTZ   NOT NULL DEFAULT now()
+);
+
+CREATE TABLE transactions (
+  id           BIGSERIAL PRIMARY KEY,
+  reference    VARCHAR(50)   UNIQUE NOT NULL,           -- idempotency key from the client
+  from_account VARCHAR(20)   NOT NULL REFERENCES accounts(account_no),
+  to_account   VARCHAR(20)   NOT NULL REFERENCES accounts(account_no),
+  amount       NUMERIC(18,2) NOT NULL CHECK (amount > 0),
+  status       VARCHAR(20)   NOT NULL,                  -- COMPLETED
+  created_at   TIMESTAMPTZ   NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_txn_from ON transactions(from_account, created_at);
+CREATE INDEX idx_txn_to   ON transactions(to_account, created_at);
+
+CREATE TABLE api_audit (
+  id            BIGSERIAL PRIMARY KEY,
+  message_id    VARCHAR(100),
+  api           VARCHAR(50),
+  reference     VARCHAR(50),
+  status        VARCHAR(20),     -- SUCCESS / REJECTED / ERROR
+  error_code    VARCHAR(50),
+  error_message TEXT,
+  request_body  TEXT,            -- masked!
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+INSERT INTO accounts (account_no, holder_name, balance) VALUES
+ ('1000000001', 'Alice', 5000.00),
+ ('1000000002', 'Bob',   1200.00),
+ ('1000000003', 'Carol',    0.00);
+UPDATE accounts SET status = 'FROZEN' WHERE account_no = '1000000003';</script>
+  <h3>Why these choices</h3>
+  <ul>
+    <li><b><code>NUMERIC(18,2)</code>, never FLOAT/DOUBLE, for money.</b> Floating point gives results like 0.1 + 0.2 = 0.30000000000000004.</li>
+    <li><b><code>CHECK (balance &gt;= 0)</code></b>: the database itself refuses an overdraft, even if application code has a bug.</li>
+    <li><b><code>reference UNIQUE</code></b>: the same transfer can never be stored twice (idempotency, see B4).</li>
+    <li><b><code>TIMESTAMPTZ</code></b>: stores time with a timezone. That matters for statements and cut-off times.</li>
+  </ul>
+  <p>Add a second datasource <code>BANK_DB</code> in <code>deployment.toml</code>, the same as L3 but pointing to <code>bankdb</code>.</p>
+  <div class="check">✅ <b>Checkpoint:</b> <code>SELECT * FROM accounts;</code> shows 3 accounts.</div>
+  <div class="done-row"><input type="checkbox" id="cb-b1" data-step="b1"><label for="cb-b1">I finished this level</label></div>
+</section>
+
+<!-- ============ B2 ============ -->
+<section id="b2">
+  <h2>B2 · Balance inquiry <span class="tag bank">Banking</span></h2>
+  <div class="goal"><b>Goal:</b> <code>GET /bank/accounts/{accountNo}/balance</code> returns the balance, and returns 404 if the account doesn't exist.</div>
+  <ol>
+    <li>Create a new API: name <code>bank</code>, context <code>/bank</code>.</li>
+    <li>Add a GET resource <code>/accounts/{accountNo}/balance</code>.</li>
+    <li>Use <b>DB Lookup</b>. This is one row, so it's a perfect fit:</li>
+  </ol>
+  <script type="text/plain" class="code" data-lang="xml"><dblookup>
+    <connection><pool><dsName>BANK_DB</dsName></pool></connection>
+    <statement>
+        <sql><![CDATA[SELECT account_no, balance, currency, status FROM accounts WHERE account_no = ?]]></sql>
+        <parameter expression="get-property('uri.var.accountNo')" type="VARCHAR"/>
+        <result name="accNo"    column="account_no"/>
+        <result name="balance"  column="balance"/>
+        <result name="currency" column="currency"/>
+        <result name="accStatus" column="status"/>
+    </statement>
+</dblookup>
+<property name="NO_ENTITY_BODY" scope="axis2" action="remove"/>
+<filter xpath="string-length(get-property('accNo')) = 0">
+    <then>
+        <payloadFactory media-type="json">
+            <format>{"error":"ACCOUNT_NOT_FOUND"}</format><args/>
+        </payloadFactory>
+        <property name="HTTP_SC" value="404" scope="axis2"/>
+        <respond/>
+    </then>
+    <else>
+        <payloadFactory media-type="json">
+            <format>{"accountNo":"$1","balance":$2,"currency":"$3","status":"$4"}</format>
+            <args>
+                <arg evaluator="xml" expression="get-property('accNo')"/>
+                <arg evaluator="xml" expression="get-property('balance')"/>
+                <arg evaluator="xml" expression="get-property('currency')"/>
+                <arg evaluator="xml" expression="get-property('accStatus')"/>
+            </args>
+        </payloadFactory>
+        <respond/>
+    </else>
+</filter></script>
+  <div class="bad"><b>Security note:</b> SQL uses <code>?</code> parameters. <b>Never</b> build SQL by joining strings with user input. That is SQL injection. Both DB Lookup/DB Report parameters and DSS <code>:params</code> are safe.</div>
+  <p><b>Exercise:</b> do the same thing as a Data Service resource <code>GET /accounts/{accountNo}</code> and compare the two approaches.</p>
+  <div class="check">✅ <b>Checkpoint:</b> <code>1000000001</code> returns 5000.00 and <code>9999</code> returns 404.</div>
+  <div class="done-row"><input type="checkbox" id="cb-b2" data-step="b2"><label for="cb-b2">I finished this level</label></div>
+</section>
+
+<!-- ============ B3 ============ -->
+<section id="b3">
+  <h2>B3 · Atomic fund transfer <span class="tag bank">Banking</span></h2>
+  <div class="goal"><b>Goal:</b> <code>POST /bank/transfers</code> debits one account and credits another. <b>Either both happen, or neither does.</b></div>
+  <div class="bad"><b>Why not two DB Reports?</b> If the debit succeeds and MI crashes or the credit fails, money disappears. Separate DB Report calls are separate transactions. In banking, money movement must be <b>one database transaction</b>.</div>
+  <h3>1. Put the logic in a PostgreSQL function (runs as one transaction)</h3>
+  <script type="text/plain" class="code" data-lang="sql">CREATE OR REPLACE FUNCTION transfer_funds(
+    p_ref VARCHAR, p_from VARCHAR, p_to VARCHAR, p_amount NUMERIC)
+RETURNS TABLE(out_txn_id BIGINT, out_status VARCHAR, out_from_balance NUMERIC)
+LANGUAGE plpgsql AS $$
+DECLARE
+  v_from accounts%ROWTYPE;
+  v_to   accounts%ROWTYPE;
+  v_old  transactions%ROWTYPE;
+  v_id   BIGINT;
+BEGIN
+  -- idempotency: same reference = return the original result, do nothing new
+  SELECT * INTO v_old FROM transactions t WHERE t.reference = p_ref;
+  IF FOUND THEN
+    RETURN QUERY SELECT v_old.id, 'DUPLICATE'::VARCHAR, NULL::NUMERIC;
+    RETURN;
+  END IF;
+
+  IF p_amount IS NULL OR p_amount <= 0 THEN RAISE EXCEPTION 'INVALID_AMOUNT'; END IF;
+  IF p_from = p_to THEN RAISE EXCEPTION 'SAME_ACCOUNT'; END IF;
+
+  -- lock both rows in a fixed order (prevents deadlocks between concurrent transfers)
+  PERFORM 1 FROM accounts a WHERE a.account_no IN (p_from, p_to)
+    ORDER BY a.account_no FOR UPDATE;
+
+  SELECT * INTO v_from FROM accounts a WHERE a.account_no = p_from;
+  IF NOT FOUND THEN RAISE EXCEPTION 'FROM_ACCOUNT_NOT_FOUND'; END IF;
+  SELECT * INTO v_to FROM accounts a WHERE a.account_no = p_to;
+  IF NOT FOUND THEN RAISE EXCEPTION 'TO_ACCOUNT_NOT_FOUND'; END IF;
+
+  IF v_from.status <> 'ACTIVE' OR v_to.status <> 'ACTIVE' THEN RAISE EXCEPTION 'ACCOUNT_NOT_ACTIVE'; END IF;
+  IF v_from.currency <> v_to.currency THEN RAISE EXCEPTION 'CURRENCY_MISMATCH'; END IF;
+  IF v_from.balance < p_amount THEN RAISE EXCEPTION 'INSUFFICIENT_FUNDS'; END IF;
+
+  UPDATE accounts SET balance = balance - p_amount WHERE account_no = p_from;
+  UPDATE accounts SET balance = balance + p_amount WHERE account_no = p_to;
+
+  INSERT INTO transactions (reference, from_account, to_account, amount, status)
+  VALUES (p_ref, p_from, p_to, p_amount, 'COMPLETED')
+  RETURNING id INTO v_id;
+
+  RETURN QUERY SELECT v_id, 'COMPLETED'::VARCHAR, v_from.balance - p_amount;
+END $$;</script>
+  <p>Test it in psql first:</p>
+  <script type="text/plain" class="code" data-lang="sql">SELECT * FROM transfer_funds('REF-001', '1000000001', '1000000002', 100.00);
+SELECT * FROM transfer_funds('REF-001', '1000000001', '1000000002', 100.00);  -- DUPLICATE
+SELECT * FROM transfer_funds('REF-002', '1000000002', '1000000001', 999999);  -- INSUFFICIENT_FUNDS
+SELECT * FROM transfer_funds('REF-003', '1000000001', '1000000003', 10);      -- ACCOUNT_NOT_ACTIVE
+SELECT account_no, balance FROM accounts;</script>
+  <h3>2. Data Service <code>BankDataService</code></h3>
+  <script type="text/plain" class="code" data-lang="xml"><data name="BankDataService" transports="http https">
+    <config id="BankDS">
+        <property name="carbon_datasource_name">BANK_DB</property>
+    </config>
+
+    <query id="transferQuery" useConfig="BankDS">
+        <sql>SELECT out_txn_id, out_status, out_from_balance
+             FROM transfer_funds(:reference, :fromAccount, :toAccount, :amount)</sql>
+        <param name="reference"   sqlType="STRING"/>
+        <param name="fromAccount" sqlType="STRING"/>
+        <param name="toAccount"   sqlType="STRING"/>
+        <param name="amount"      sqlType="NUMERIC"/>
+        <result element="TransferResult" rowName="Transfer">
+            <element column="out_txn_id"       name="txnId"/>
+            <element column="out_status"       name="status"/>
+            <element column="out_from_balance" name="fromBalance"/>
+        </result>
+    </query>
+
+    <operation name="transfer">
+        <call-query href="transferQuery">
+            <with-param name="reference"   query-param="reference"/>
+            <with-param name="fromAccount" query-param="fromAccount"/>
+            <with-param name="toAccount"   query-param="toAccount"/>
+            <with-param name="amount"      query-param="amount"/>
+        </call-query>
+    </operation>
+</data></script>
+  <h3>3. API resource <code>POST /bank/transfers</code></h3>
+  <script type="text/plain" class="code" data-lang="xml"><resource methods="POST" uri-template="/transfers">
+    <inSequence>
+        <property name="messageId" expression="get-property('MessageID')" scope="default" type="STRING"/>
+        <property name="reference" expression="json-eval($.reference)" scope="default" type="STRING"/>
+        <!-- TODO: validate input here (filter): reference, accounts and amount must be present -->
+
+        <dataServiceCall serviceName="BankDataService">
+            <source type="inline"/>
+            <operations type="single">
+                <operation name="transfer">
+                    <param name="reference"   evaluator="json" expression="$.reference"/>
+                    <param name="fromAccount" evaluator="json" expression="$.fromAccount"/>
+                    <param name="toAccount"   evaluator="json" expression="$.toAccount"/>
+                    <param name="amount"      evaluator="json" expression="$.amount"/>
+                </operation>
+            </operations>
+            <target type="body"/>
+        </dataServiceCall>
+        <log level="full"/>   <!-- look at the shape of the result first! -->
+
+        <payloadFactory media-type="json">
+            <format>{"txnId":"$1","status":"$2","reference":"$3"}</format>
+            <args>
+                <arg evaluator="xml" expression="//*[local-name()='txnId']/text()"/>
+                <arg evaluator="xml" expression="//*[local-name()='status']/text()"/>
+                <arg evaluator="xml" expression="get-property('reference')"/>
+            </args>
+        </payloadFactory>
+        <respond/>
+    </inSequence>
+    <faultSequence>
+        <log level="custom"><property name="ERR" expression="get-property('ERROR_MESSAGE')"/></log>
+        <!-- B4: map the error code to HTTP status + audit it -->
+        <payloadFactory media-type="json">
+            <format>{"error":"$1"}</format>
+            <args><arg evaluator="xml" expression="get-property('ERROR_MESSAGE')"/></args>
+        </payloadFactory>
+        <property name="HTTP_SC" value="400" scope="axis2"/>
+        <respond/>
+    </faultSequence>
+</resource></script>
+  <h3>4. Test</h3>
+  <script type="text/plain" class="code" data-lang="bash">curl -X POST http://localhost:8290/bank/transfers -H "Content-Type: application/json" -d "{\"reference\":\"REF-100\",\"fromAccount\":\"1000000001\",\"toAccount\":\"1000000002\",\"amount\":250.50}"</script>
+  <h3>Experiments</h3>
+  <ul>
+    <li>Send the same request twice. The second call must return <code>DUPLICATE</code> and the balances must not change.</li>
+    <li>Send <code>INSUFFICIENT_FUNDS</code>. Check the MI log: does the fault sequence run? What text is in <code>ERROR_MESSAGE</code>?</li>
+    <li>Run <code>SELECT SUM(balance) FROM accounts;</code> before and after many transfers. The total must <b>never</b> change.</li>
+  </ul>
+  <div class="warn"><b>Other transaction options you'll meet:</b> the Data Service <b>request-box</b> (several operations in one transaction) and the <b>Transaction mediator</b> with <code>dbreport useTransaction="true"</code> (distributed/XA, complex). A stored procedure/function like the one above is the simplest and most common safe pattern.</div>
+  <div class="check">✅ <b>Checkpoint:</b> successful, duplicate and every failure case behave correctly, and the total balance stays constant.</div>
+  <div class="done-row"><input type="checkbox" id="cb-b3" data-step="b3"><label for="cb-b3">I finished this level</label></div>
+</section>
+
+<!-- ============ B4 ============ -->
+<section id="b4">
+  <h2>B4 · Idempotency, error mapping &amp; audit <span class="tag bank">Banking</span></h2>
+  <div class="goal"><b>Goal:</b> clean error codes for clients, and an audit row for <b>every</b> attempt, including rejected ones.</div>
+  <h3>Why audit separately?</h3>
+  <p>When <code>transfer_funds</code> raises an exception, its transaction rolls back and <b>nothing</b> is written. A bank still needs a record that someone tried. So write the audit row from MI with a <b>separate</b> DB Report that isn't part of the transfer transaction.</p>
+  <h3>1. Map error codes to HTTP status (in the fault sequence)</h3>
+  <table>
+    <tr><th>Error code</th><th>HTTP</th></tr>
+    <tr><td>INVALID_AMOUNT, SAME_ACCOUNT, CURRENCY_MISMATCH</td><td>400</td></tr>
+    <tr><td>FROM_ACCOUNT_NOT_FOUND, TO_ACCOUNT_NOT_FOUND</td><td>404</td></tr>
+    <tr><td>INSUFFICIENT_FUNDS, ACCOUNT_NOT_ACTIVE</td><td>422</td></tr>
+    <tr><td>anything else (database down, etc.)</td><td>500, with a generic message. Never show internal errors to clients.</td></tr>
+  </table>
+  <p>Use a <b>Switch</b> mediator on <code>get-property('ERROR_MESSAGE')</code> with regex cases such as <code>.*INSUFFICIENT_FUNDS.*</code>, and set <code>errorCode</code> and <code>HTTP_SC</code> in each case.</p>
+  <h3>2. Audit sequence</h3>
+  <script type="text/plain" class="code" data-lang="xml"><sequence name="BankAuditSequence" xmlns="http://ws.apache.org/ns/synapse">
+    <dbreport>
+        <connection><pool><dsName>BANK_DB</dsName></pool></connection>
+        <statement>
+            <sql><![CDATA[INSERT INTO api_audit
+              (message_id, api, reference, status, error_code, error_message, request_body)
+              VALUES (?, ?, ?, ?, ?, ?, ?)]]></sql>
+            <parameter expression="get-property('messageId')"   type="VARCHAR"/>
+            <parameter value="transfer"                         type="VARCHAR"/>
+            <parameter expression="get-property('reference')"   type="VARCHAR"/>
+            <parameter expression="get-property('auditStatus')" type="VARCHAR"/>
+            <parameter expression="get-property('errorCode')"   type="VARCHAR"/>
+            <parameter expression="get-property('errorText')"   type="VARCHAR"/>
+            <parameter expression="get-property('maskedBody')"  type="VARCHAR"/>
+        </statement>
+    </dbreport>
+</sequence></script>
+  <h3>3. Mask sensitive data before storing it</h3>
+  <p>Don't store full account numbers in logs. Store the last 4 digits only, for example <code>******0001</code>. Build <code>maskedBody</code> with a property expression such as:</p>
+  <script type="text/plain" class="code" data-lang="xml"><property name="maskedBody" scope="default" type="STRING"
+  expression="concat('{&quot;from&quot;:&quot;****', substring(get-property('fromAcc'), string-length(get-property('fromAcc')) - 3),
+                     '&quot;,&quot;to&quot;:&quot;****',  substring(get-property('toAcc'),   string-length(get-property('toAcc')) - 3),
+                     '&quot;,&quot;amount&quot;:', get-property('amount'), '}')"/></script>
+  <p>(Save <code>fromAcc</code>, <code>toAcc</code> and <code>amount</code> as properties at the start of the flow.)</p>
+  <h3>4. Idempotency, end to end</h3>
+  <ul>
+    <li>The client generates a unique <code>reference</code> (or sends an <code>X-Idempotency-Key</code> header) per transfer.</li>
+    <li>If the network drops and the client <b>retries</b>, the same reference returns <code>DUPLICATE</code> plus the original <code>txnId</code>. The customer is never charged twice.</li>
+    <li>The <code>UNIQUE</code> constraint is the final safety net if two identical requests arrive at the same moment.</li>
+  </ul>
+  <div class="check">✅ <b>Checkpoint:</b> success, duplicate and each failure all produce one <code>api_audit</code> row with the correct status and error code, and no full account numbers appear.</div>
+  <div class="done-row"><input type="checkbox" id="cb-b4" data-step="b4"><label for="cb-b4">I finished this level</label></div>
+</section>
+
+<!-- ============ B5 ============ -->
+<section id="b5">
+  <h2>B5 · Account statement (multi-row, paging) <span class="tag bank">Banking</span></h2>
+  <div class="goal"><b>Goal:</b> <code>GET /bank/accounts/{accountNo}/statement?from=2026-01-01&amp;to=2026-12-31&amp;page=1&amp;size=20</code></div>
+  <p>DB Lookup only returns the <b>first row</b>, so it can't do this. That's exactly why Data Services exist. Add to <code>BankDataService</code>:</p>
+  <script type="text/plain" class="code" data-lang="xml"><query id="statementQuery" useConfig="BankDS">
+    <sql>SELECT id, reference, created_at,
+                CASE WHEN from_account = :acc THEN 'DEBIT' ELSE 'CREDIT' END AS direction,
+                amount,
+                CASE WHEN from_account = :acc THEN to_account ELSE from_account END AS counterparty
+         FROM transactions
+         WHERE (from_account = :acc OR to_account = :acc)
+           AND created_at &gt;= CAST(:fromDate AS DATE)
+           AND created_at &lt;  CAST(:toDate AS DATE) + 1
+         ORDER BY created_at DESC, id DESC
+         LIMIT :size OFFSET :offset</sql>
+    <param name="acc"      sqlType="STRING"/>
+    <param name="fromDate" sqlType="STRING"/>
+    <param name="toDate"   sqlType="STRING"/>
+    <param name="size"     sqlType="INTEGER"/>
+    <param name="offset"   sqlType="INTEGER"/>
+    <result outputType="json">
+{"statement":{"entry":[{"id":"$id","reference":"$reference","date":"$created_at","direction":"$direction","amount":"$amount","counterparty":"$counterparty"}]}}
+    </result>
+</query>
+
+<resource method="GET" path="accounts/{acc}/statement">
+    <call-query href="statementQuery">
+        <with-param name="acc"      query-param="acc"/>
+        <with-param name="fromDate" query-param="from"/>
+        <with-param name="toDate"   query-param="to"/>
+        <with-param name="size"     query-param="size"/>
+        <with-param name="offset"   query-param="offset"/>
+    </call-query>
+</resource></script>
+  <ol>
+    <li>Test the Data Service directly with <code>offset</code>.</li>
+    <li>In the <code>bank</code> API, convert <code>page</code>/<code>size</code> into <code>offset = (page-1)*size</code> (an XPath expression in a property). Cap <code>size</code> at 100 so nobody can fetch millions of rows.</li>
+    <li>Call the data service. Use <b>Call Dataservice</b> (in-process) or a <code>&lt;call&gt;</code> to its HTTP URL, and compare them.</li>
+    <li><b>Stretch:</b> add an opening balance and a closing balance to the response.</li>
+  </ol>
+  <div class="warn">The <code>idx_txn_from</code> / <code>idx_txn_to</code> indexes from B1 are what keep this query fast on millions of rows. Try <code>EXPLAIN ANALYZE</code> on the query in psql.</div>
+  <div class="check">✅ <b>Checkpoint:</b> after a few transfers, the statement shows correct DEBIT/CREDIT rows, newest first, and paging works.</div>
+  <div class="done-row"><input type="checkbox" id="cb-b5" data-step="b5"><label for="cb-b5">I finished this level</label></div>
+</section>
+
+<!-- ============ ERRORS ============ -->
+<section id="errors">
+  <h2>Troubleshooting</h2>
+  <table>
+    <tr><th>Error / symptom</th><th>Likely cause</th></tr>
+    <tr><td><code>No suitable driver found</code> / <code>ClassNotFoundException: org.postgresql.Driver</code></td><td>The JDBC jar isn't in <code>deployment/libs</code> or <code>MI_HOME/lib</code>, or MI wasn't restarted.</td></tr>
+    <tr><td><code>Connection refused</code> to 5432</td><td>The container isn't running (<code>docker ps</code>), or the port is wrong.</td></tr>
+    <tr><td><code>password authentication failed</code></td><td>Wrong user/password, or you connected to the wrong database.</td></tr>
+    <tr><td><code>relation "calc_log" does not exist</code></td><td>The table was created in a different database (calcdb vs bankdb vs postgres).</td></tr>
+    <tr><td><code>invalid input syntax for type integer: ""</code></td><td>The property is empty. Check its name and when it was set (<code>log level="full"</code>).</td></tr>
+    <tr><td>Datasource <code>CALC_DB</code> not found</td><td><code>deployment.toml</code> changed without a restart, or <code>dsName</code> doesn't match the <code>id</code>.</td></tr>
+    <tr><td>Empty response body on a GET</td><td>Remove <code>NO_ENTITY_BODY</code> before the <code>payloadFactory</code>.</td></tr>
+    <tr><td>DSS REST POST ignores your JSON</td><td>DSS expects a wrapper element: <code>{"_post&lt;path&gt;": { ...params }}</code>, for example <code>{"_posttransfer":{...}}</code>.</td></tr>
+    <tr><td>Client receives the DSS XML instead of your JSON</td><td><code>dataServiceCall</code> target is <code>body</code>. Use <code>property</code>, or transform afterwards.</td></tr>
+    <tr><td><code>Invalid UTF-8 start byte 0x8b</code></td><td>The backend returned a gzip-compressed response (<code>Accept-Encoding</code> was passed through).</td></tr>
+    <tr><td>Requests hang under load</td><td>The connection pool is exhausted. Check <code>maxActive</code>, slow queries and leaked connections.</td></tr>
+  </table>
+  <h3>Useful psql commands</h3>
+  <script type="text/plain" class="code" data-lang="sql">\l                -- list databases
+\c bankdb         -- switch database
+\dt               -- list tables
+\d accounts       -- describe a table
+\df               -- list functions
+\pset pager off   -- no (END) screen
+\q                -- quit</script>
+</section>
+
+<!-- ============ PROD ============ -->
+<section id="prod">
+  <h2>Production checklist (banking)</h2>
+  <h3>Data &amp; transactions</h3>
+  <ul>
+    <li>Money is <code>NUMERIC</code>/<code>DECIMAL</code>, never float. The currency is stored next to every amount.</li>
+    <li>All money movement happens in <b>one DB transaction</b> (stored procedure, DSS request-box, or a core banking API). Never use separate DB Report calls.</li>
+    <li>Row locks (<code>FOR UPDATE</code>) are taken in a consistent order to avoid deadlocks.</li>
+    <li>Every write API is <b>idempotent</b>, with a unique reference and a <code>UNIQUE</code> constraint.</li>
+    <li>DB constraints (<code>CHECK</code>, <code>FOREIGN KEY</code>, <code>UNIQUE</code>) are the last line of defence.</li>
+  </ul>
+  <h3>Security</h3>
+  <ul>
+    <li>No credentials in XML or git. Use a datasource, <b>Secure Vault</b> and environment variables.</li>
+    <li>Parameterised SQL only (<code>?</code> / <code>:param</code>), never string concatenation.</li>
+    <li>The DB user has the minimum rights it needs. For example, the API user can <code>EXECUTE</code> the function but can't <code>UPDATE accounts</code> directly.</li>
+    <li>Mask account numbers, card numbers and personal data in logs and audit tables. Never log passwords, PINs, OTPs or tokens.</li>
+    <li>Return generic messages to clients and keep the details in internal logs.</li>
+  </ul>
+  <h3>Reliability &amp; performance</h3>
+  <ul>
+    <li>Size the connection pool, set <code>validationQuery</code>, and set timeouts on endpoints and queries.</li>
+    <li>Index every column you filter or sort on.</li>
+    <li>Paginate every list endpoint and cap the page size.</li>
+    <li>Decide what happens if the <b>audit insert</b> fails: should the client still get its result? Document the decision.</li>
+    <li>For very high volume, consider async audit with a message store/processor or a queue instead of synchronous inserts.</li>
+  </ul>
+  <h3>Traceability</h3>
+  <ul>
+    <li>Store MI's <code>MessageID</code> or a correlation ID in every log and audit row.</li>
+    <li>Use <code>TIMESTAMPTZ</code> and decide on one timezone for reports.</li>
+    <li>Audit rows are append-only: no UPDATE and no DELETE.</li>
+  </ul>
+</section>
+
+</main>
+</div>
+
+<script>
+(function(){
+  // Render code blocks from <script type="text/plain" class="code">
+  document.querySelectorAll('script.code').forEach(function(s){
+    var wrap=document.createElement('div');wrap.className='codewrap';
+    var lang=document.createElement('span');lang.className='lang';lang.textContent=s.dataset.lang||'';
+    var pre=document.createElement('pre');var code=document.createElement('code');
+    code.textContent=s.textContent.replace(/^\n/,'').replace(/\s+$/,'');
+    pre.appendChild(code);
+    var btn=document.createElement('button');btn.className='copy';btn.type='button';btn.textContent='Copy';
+    btn.addEventListener('click',function(){
+      var done=function(){btn.textContent='Copied';setTimeout(function(){btn.textContent='Copy'},1200)};
+      if(navigator.clipboard){navigator.clipboard.writeText(code.textContent).then(done,function(){})}
+    });
+    wrap.appendChild(lang);wrap.appendChild(pre);wrap.appendChild(btn);
+    s.parentNode.replaceChild(wrap,s);
+  });
+
+  // Progress
+  var KEY='wso2-db-guide-progress';
+  var state={};
+  try{state=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){state={}}
+  var boxes=document.querySelectorAll('.done-row input');
+  function render(){
+    var n=0;
+    boxes.forEach(function(b){
+      var on=!!state[b.dataset.step];b.checked=on;if(on)n++;
+      var link=document.querySelector('nav a[data-step="'+b.dataset.step+'"]');
+      if(link)link.classList.toggle('done',on);
+    });
+    document.getElementById('bar').style.width=(n/boxes.length*100)+'%';
+    document.getElementById('progressText').textContent=n+' of '+boxes.length+' levels done';
+  }
+  boxes.forEach(function(b){
+    b.addEventListener('change',function(){
+      state[b.dataset.step]=b.checked;
+      try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}
+      render();
+    });
+  });
+  render();
+
+  // Theme toggle
+  var root=document.documentElement;
+  try{var t=localStorage.getItem('wso2-db-guide-theme');if(t)root.setAttribute('data-theme',t)}catch(e){}
+  document.getElementById('themeBtn').addEventListener('click',function(){
+    var dark=root.getAttribute('data-theme')==='dark'||(!root.getAttribute('data-theme')&&matchMedia('(prefers-color-scheme: dark)').matches);
+    var next=dark?'light':'dark';root.setAttribute('data-theme',next);
+    try{localStorage.setItem('wso2-db-guide-theme',next)}catch(e){}
+  });
+})();
+</script>
+</body>
+</html>

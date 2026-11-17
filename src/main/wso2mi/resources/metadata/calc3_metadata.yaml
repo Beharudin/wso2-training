@@ -1,0 +1,10 @@
+---
+key: "calc3-1.0.0"
+name : "calc3"
+displayName : "calc3"
+description: "calc3"
+version: "1.0.0"
+serviceUrl: "https://{MI_HOST}:{MI_PORT}/calc3"
+definitionType: "OAS3"
+securityType: "BASIC"
+mutualSSLEnabled: false

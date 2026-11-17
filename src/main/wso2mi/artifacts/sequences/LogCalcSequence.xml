@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sequence name="LogCalcSequence" trace="disable" xmlns="http://ws.apache.org/ns/synapse">
+    <property name="respBody" expression="json-eval($)" scope="default" type="STRING"/>
+    <dbreport>
+        <connection>
+            <pool>
+                <dsName>jdbc/CALC_DB</dsName>
+            </pool>
+        </connection>
+        <statement>
+            <sql><![CDATA[INSERT INTO calc_log(message_id, operation, int_a, int_b, result, request_body, response_body, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ]]></sql>
+            <parameter expression="get-property('messageId')" type="VARCHAR"/>
+            <parameter expression="get-property('operation')" type="VARCHAR"/>
+            <parameter type="INTEGER" expression="get-property('intA')"/>
+            <parameter type="INTEGER" expression="get-property('intB')"/>
+            <parameter type="INTEGER" expression="json-eval($.result)"/>
+            <parameter expression="get-property('reqBody')" type="VARCHAR"/>
+            <parameter expression="get-property('respBody')" type="VARCHAR"/>
+            <parameter type="VARCHAR" value="SUCCESS"/>
+        </statement>
+    </dbreport>
+</sequence>

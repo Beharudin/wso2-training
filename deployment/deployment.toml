@@ -80,12 +80,16 @@ algorithm = "AES"
 # [system.parameter]
 # 'key' = "value"
 
-# [[datasource]]
-# id = "WSO2CarbonDB"  # "WSO2_COORDINATION_DB"
-# url = "jdbc:mysql://localhost:3306/integratordb"
-# username = "root"
-# password = "root"
-# driver = "com.mysql.jdbc.Driver"
+[[datasource]]
+id = "CALC_DB"
+url = "jdbc:postgresql://localhost:5453/calcdb"
+username = "calc"
+password = "calc"
+driver = "org.postgresql.Driver"
+ pool_options.maxActive = 20
+pool_options.maxWait = 10000
+pool_options.validationQuery = "SELECT 1"
+pool_options.testOnBorrow = true
 
 # [management_api]
 # protocols = "http"

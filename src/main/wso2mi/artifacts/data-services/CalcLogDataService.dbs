@@ -1,0 +1,36 @@
+<data name="CalcLogDataService" serviceNamespace="" serviceGroup="" transports="http https" disableStreaming="true">
+  <description/>
+  <config id="CalcDS">
+    <property name="carbon_datasource_name">CALC_DB</property>
+  </config>
+  <query id="getLogsQuery" useConfig="CalcDS">
+    <sql>SELECT id, operation, int_a, int_b, result, status FROM calc_log ORDER BY id DESC LIMIT :limit</sql>
+    <param name="limit" sqlType="INTEGER"/>
+    <result outputType="json">
+      {"logs":{"log":[{"id":"$id","operation":"$operation","intA":"$int_a","intB":"$int_b","result":"$result","status":"$status"}]}}
+    </result>
+  </query>
+  <query id="insertLogQuery" useConfig="CalcDS">
+    <sql>INSERT INTO calc_log (message_id, operation, int_a, int_b, result, status)
+      VALUES (:messageId, :operation, :intA, :intB, :result, 'SUCCESS')</sql>
+    <param name="messageId" sqlType="STRING"/>
+    <param name="operation" sqlType="STRING"/>
+    <param name="intA" sqlType="INTEGER"/>
+    <param name="intB" sqlType="INTEGER"/>
+    <param name="result" sqlType="INTEGER"/>
+  </query>
+  <resource method="GET" path="logs">
+    <call-query href="getLogsQuery">
+      <with-param name="limit" query-param="limit"/>
+    </call-query>
+  </resource>
+  <operation name="insertLog">
+    <call-query href="insertLogQuery">
+      <with-param name="messageId" query-param="messageId"/>
+      <with-param name="operation" query-param="operation"/>
+      <with-param name="intA" query-param="intA"/>
+      <with-param name="intB" query-param="intB"/>
+      <with-param name="result" query-param="result"/>
+    </call-query>
+  </operation>
+</data>

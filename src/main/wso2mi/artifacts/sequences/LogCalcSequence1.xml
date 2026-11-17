@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sequence name="LogCalcSequence1" trace="disable" xmlns="http://ws.apache.org/ns/synapse">
+    <property name="respBody" expression="json-eval($)" scope="default" type="STRING"/>
+    <dataServiceCall serviceName="CalcLogDataService">
+        <source type="inline"/>
+        <operations type="single">
+            <operation name="insertLog">
+                <param name="messageId" evaluator="xml" expression="get-property('messageId')"/>
+                <param name="operation" evaluator="xml" expression="get-property('operation')"/>
+                <param name="intA" evaluator="xml" expression="get-property('intA')"/>
+                <param name="intB" evaluator="xml" expression="get-property('intB')"/>
+                <param name="result" evaluator="json" expression="$.result"/>
+            </operation>
+        </operations>
+        <target type="property" name="dsResponse"/>
+    </dataServiceCall>
+    <log level="full">
+        <property name="dsResponse" expression="get-property('dsResponse')"/>
+    </log>
+</sequence>
